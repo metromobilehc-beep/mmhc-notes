@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PTA Visit Note — Fill Out</title>
+<script src="pdf-lib.min.js"></script>
+<style>
+  :root {
+    --navy: #1c2b3a;
+    --paper: #f7f5f0;
+    --line: #d8d3c6;
+    --accent: #b0472e;
+    --ink: #23303b;
+    --muted: #5c6b77;
+    --ok: #2f6b46;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    padding-bottom: 80px;
+  }
+  header {
+    background: var(--navy);
+    color: #fff;
+    padding: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+  header .brand {
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #b7c3cc;
+  }
+  header h1 {
+    margin: 4px 0 0;
+    font-size: clamp(18px, 4.5vw, 24px);
+  }
+  a.back {
+    color: #cdd6dc;
+    font-size: 13px;
+    text-decoration: none;
+  }
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+  }
+  fieldset {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #fff;
+    margin: 0 0 18px;
+    padding: 14px 16px 18px;
+  }
+  legend {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 6px;
+    font-weight: 600;
+  }
+  label {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+    margin: 10px 0 4px;
+  }
+  input[type=text], input[type=date], input[type=time], textarea {
+    width: 100%;
+    font-size: 16px;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font-family: inherit;
+    color: var(--ink);
+    background: #fff;
+  }
+  textarea { resize: vertical; min-height: 60px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .row > div { flex: 1; min-width: 130px; }
+  .choice-group { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 6px; }
+  .choice-group label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .choice-group input { width: auto; }
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .sticky-actions {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-top: 1px solid var(--line);
+    padding: 12px 16px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    z-index: 10;
+  }
+  button {
+    font-size: 15px;
+    font-weight: 600;
+    padding: 12px 20px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+  }
+  #generateBtn {
+    background: var(--accent);
+    color: #fff;
+    flex: 1;
+    max-width: 360px;
+  }
+  #generateBtn:disabled { background: #c8b6ae; }
+  #status {
+    max-width: 720px;
+    margin: 0 auto 16px;
+    padding: 0 16px;
+    font-size: 14px;
+  }
+  #status.ok { color: var(--ok); }
+  #status.err { color: var(--accent); }
+  .alert {
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    background: #fff;
+    padding: 12px 14px;
+    border-radius: 4px;
+    font-size: 13.5px;
+    margin-bottom: 18px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="back" href="index.html">&larr; Back</a>
+  <div class="brand">Metro Mobile Health Care</div>
+  <h1>PTA Visit Note — Paper Backup</h1>
+</header>
+
+<main>
+  <div class="alert">
+    Fill this out right here in the browser — no PDF app needed. When you're done, tap <strong>Generate Completed PDF</strong> and it'll save to your tablet as a normal file you can view or upload once eMR is back up.
+  </div>
+
+  <div id="status"></div>
+
+  <form id="visitForm">
+
+    <fieldset>
+      <legend>Visit Info</legend>
+      <div class="row">
+        <div><label>Visit Date</label><input type="text" id="visit_date" placeholder="MM/DD/YYYY"></div>
+        <div><label>Time In</label><input type="text" id="time_in" placeholder="HH:MM"></div>
+      </div>
+      <div class="row">
+        <div><label>Time Out</label><input type="text" id="time_out" placeholder="HH:MM"></div>
+        <div><label>Visit Length</label><input type="text" id="visit_len" placeholder="e.g. 45 min"></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Patient</legend>
+      <label>Patient Name</label>
+      <input type="text" id="patient_name">
+      <label>MRN / ID</label>
+      <input type="text" id="mrn">
+      <label>Home Health Agency</label>
+      <input type="text" id="agency">
+      <label>DOB</label>
+      <input type="text" id="dob" placeholder="MM/DD/YYYY">
+
+      <label>Homebound Status</label>
+      <div class="choice-group">
+        <label><input type="radio" name="homebound" value="0"> Yes</label>
+        <label><input type="radio" name="homebound" value="1"> No</label>
+      </div>
+      <label>Reason Homebound</label>
+      <input type="text" id="homebound_reason">
+    </fieldset>
+
+    <fieldset>
+      <legend>Vitals</legend>
+      <div class="row">
+        <div><label>BP</label><input type="text" id="vital_0"></div>
+        <div><label>HR</label><input type="text" id="vital_1"></div>
+        <div><label>RR</label><input type="text" id="vital_2"></div>
+      </div>
+      <div class="row">
+        <div><label>Temp</label><input type="text" id="vital_3"></div>
+        <div><label>O2 Sat %</label><input type="text" id="vital_4"></div>
+        <div><label>Pain (0-10)</label><input type="text" id="vital_5"></div>
+        <div><label>Wt</label><input type="text" id="vital_6"></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Subjective</legend>
+      <label>Patient/caregiver report, complaints, changes since last visit</label>
+      <textarea id="subjective"></textarea>
+    </fieldset>
+
+    <fieldset>
+      <legend>Objective — Skilled Interventions</legend>
+      <label>Mental Status</label>
+      <div class="choice-group">
+        <label><input type="checkbox" id="mental_0"> Oriented</label>
+        <label><input type="checkbox" id="mental_1"> Forgetful</label>
+        <label><input type="checkbox" id="mental_2"> Disoriented</label>
+        <label><input type="checkbox" id="mental_3"> Agitated</label>
+        <label><input type="checkbox" id="mental_4"> Comatose</label>
+        <label><input type="checkbox" id="mental_5"> Depressed</label>
+        <label><input type="checkbox" id="mental_6"> Lethargic</label>
+      </div>
+
+      <label>Therapeutic Exercise</label>
+      <textarea id="ther_ex"></textarea>
+
+      <label>Balance Training</label>
+      <textarea id="balance"></textarea>
+
+      <label>Transfer Training</label>
+      <textarea id="transfer"></textarea>
+      <label>Deviations / Correction</label>
+      <input type="text" id="transfer_dev">
+
+      <label>Bed Mobility Training</label>
+      <textarea id="bedmob"></textarea>
+      <label>Deviations / Correction</label>
+      <input type="text" id="bedmob_dev">
+
+      <label>Gait Training / Wheelchair Mobility Training</label>
+      <textarea id="gait"></textarea>
+
+      <label>Pain</label>
+      <input type="text" id="pain_note">
+
+      <label>Other</label>
+      <input type="text" id="other_note">
+    </fieldset>
+
+    <fieldset>
+      <legend>Instruction / Education</legend>
+      <label>Provided to</label>
+      <div class="choice-group">
+        <label><input type="radio" name="edu_who" value="0"> Patient</label>
+        <label><input type="radio" name="edu_who" value="1"> Caregiver</label>
+        <label><input type="radio" name="edu_who" value="2"> Patient/Caregiver</label>
+      </div>
+
+      <label>On</label>
+      <div class="choice-group">
+        <label><input type="checkbox" id="edu_on_a_0"> Safety</label>
+        <label><input type="checkbox" id="edu_on_a_1"> Deep Breathing</label>
+        <label><input type="checkbox" id="edu_on_a_2"> HEP</label>
+        <label><input type="checkbox" id="edu_on_a_3"> Proper Positioning</label>
+        <label><input type="checkbox" id="edu_on_b_0"> Proper Modality Use</label>
+        <label><input type="checkbox" id="edu_on_b_1"> Postural Corrections</label>
+        <label><input type="checkbox" id="edu_on_b_2"> Fall Precautions</label>
+        <label><input type="checkbox" id="edu_on_b_3"> Other</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Assessment — Response &amp; Progress</legend>
+      <label>Patient response to treatment this visit</label>
+      <textarea id="response"></textarea>
+      <label>Outcome / Progress toward goal</label>
+      <textarea id="progress"></textarea>
+    </fieldset>
+
+    <fieldset>
+      <legend>Plan</legend>
+      <label>Frequency / Plan</label>
+      <input type="text" id="frequency">
+      <label>Details</label>
+      <textarea id="plan"></textarea>
+
+      <label>D/C plans discussed with</label>
+      <div class="choice-group">
+        <label><input type="checkbox" id="dc_with_0"> Patient</label>
+        <label><input type="checkbox" id="dc_with_1"> Caregiver</label>
+        <label><input type="checkbox" id="dc_with_2"> Physician</label>
+        <label><input type="checkbox" id="dc_with_3"> Other</label>
+      </div>
+
+      <label>Reported to (supervising PT / physician)</label>
+      <input type="text" id="reported">
+    </fieldset>
+
+    <fieldset>
+      <legend>Care Coordination &amp; PTA Supervision</legend>
+      <label>Coordinated with</label>
+      <div class="choice-group">
+        <label><input type="checkbox" id="coord_0"> PT</label>
+        <label><input type="checkbox" id="coord_1"> OT</label>
+        <label><input type="checkbox" id="coord_2"> ST</label>
+        <label><input type="checkbox" id="coord_3"> SN</label>
+        <label><input type="checkbox" id="coord_4"> MSW</label>
+        <label><input type="checkbox" id="coord_5"> HHA</label>
+        <label><input type="checkbox" id="coord_6"> Other</label>
+      </div>
+
+      <label>PTA following established plan of care</label>
+      <div class="choice-group">
+        <label><input type="radio" name="following" value="0"> Yes</label>
+        <label><input type="radio" name="following" value="1"> No</label>
+      </div>
+      <label>If no, explain</label>
+      <input type="text" id="following_explain">
+
+      <label>Supervising PT present this visit</label>
+      <div class="choice-group">
+        <label><input type="radio" name="pt_present" value="0"> Yes</label>
+        <label><input type="radio" name="pt_present" value="1"> No</label>
+      </div>
+
+      <label>HHA care plan</label>
+      <div class="choice-group">
+        <label><input type="radio" name="hha_plan" value="0"> Reviewed</label>
+        <label><input type="radio" name="hha_plan" value="1"> Revised/Updated</label>
+      </div>
+
+      <div class="row">
+        <div><label>Next Supervisory Visit</label><input type="text" id="next_super"></div>
+        <div><label>Next PT Visit</label><input type="text" id="next_pt"></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Signatures</legend>
+      <label>PTA Signature / Title (type full name)</label>
+      <input type="text" id="pta_sig">
+      <label>Date</label>
+      <input type="text" id="pta_date" placeholder="MM/DD/YYYY">
+
+      <label>Supervising PT Signature (type full name)</label>
+      <input type="text" id="pt_sig">
+      <label>Date</label>
+      <input type="text" id="pt_date" placeholder="MM/DD/YYYY">
+
+      <label>Patient / Caregiver Signature (type full name)</label>
+      <input type="text" id="pt_care_sig">
+      <label>Date</label>
+      <input type="text" id="pcare_date" placeholder="MM/DD/YYYY">
+    </fieldset>
+
+  </form>
+
+  <p class="hint">This generates a completed copy of the standard visit note PDF using what you entered above. Nothing is sent anywhere — the file is created on your device.</p>
+</main>
+
+<div class="sticky-actions">
+  <button id="generateBtn">Generate Completed PDF</button>
+</div>
+
+<script>
+if (typeof PDFLib === 'undefined') {
+  document.addEventListener('DOMContentLoaded', () => {
+    const statusEl = document.getElementById('status');
+    statusEl.textContent = 'This page failed to load a required file (pdf-lib.min.js). Make sure that file is in the same folder as this page, then reload.';
+    statusEl.className = 'err';
+    document.getElementById('generateBtn').disabled = true;
+  });
+  throw new Error('PDFLib failed to load');
+}
+
+const { PDFDocument } = PDFLib;
+
+const textFieldIds = [
+  "visit_date","time_in","time_out","visit_len","patient_name","mrn","agency","dob",
+  "homebound_reason","vital_0","vital_1","vital_2","vital_3","vital_4","vital_5","vital_6",
+  "subjective","ther_ex","balance","transfer","transfer_dev","bedmob","bedmob_dev","gait",
+  "pain_note","other_note","response","progress","frequency","plan","reported",
+  "following_explain","next_super","next_pt","pta_sig","pta_date","pt_sig","pt_date",
+  "pt_care_sig","pcare_date"
+];
+
+const checkboxIds = [
+  "mental_0","mental_1","mental_2","mental_3","mental_4","mental_5","mental_6",
+  "edu_on_a_0","edu_on_a_1","edu_on_a_2","edu_on_a_3",
+  "edu_on_b_0","edu_on_b_1","edu_on_b_2","edu_on_b_3",
+  "dc_with_0","dc_with_1","dc_with_2","dc_with_3",
+  "coord_0","coord_1","coord_2","coord_3","coord_4","coord_5","coord_6"
+];
+
+// radio group name -> [checkbox field ids for each option index]
+const radioGroups = {
+  homebound: ["homebound_0","homebound_1"],
+  edu_who: ["edu_who_0","edu_who_1","edu_who_2"],
+  following: ["following_0","following_1"],
+  pt_present: ["pt_present_0","pt_present_1"],
+  hha_plan: ["hha_plan_0","hha_plan_1"]
+};
+
+const statusEl = document.getElementById('status');
+
+function setStatus(msg, cls) {
+  statusEl.textContent = msg;
+  statusEl.className = cls || '';
+}
+
+document.getElementById('generateBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  setStatus('Generating your PDF...', '');
+
+  try {
+    const existingPdfBytes = await fetch('pta-visit-note-metro.pdf').then(res => {
+      if (!res.ok) throw new Error('Could not load the form template.');
+      return res.arrayBuffer();
+    });
+
+    const pdfDoc = await PDFDocument.load(existingPdfBytes);
+    const form = pdfDoc.getForm();
+
+    textFieldIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const val = el.value || '';
+      try {
+        form.getTextField(id).setText(val);
+      } catch (e) { /* field not found, skip */ }
+    });
+
+    checkboxIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      try {
+        const cb = form.getCheckBox(id);
+        if (el.checked) cb.check(); else cb.uncheck();
+      } catch (e) { /* skip */ }
+    });
+
+    Object.keys(radioGroups).forEach(groupName => {
+      const selected = document.querySelector(`input[name="${groupName}"]:checked`);
+      const fieldIds = radioGroups[groupName];
+      fieldIds.forEach((fid, idx) => {
+        try {
+          const cb = form.getCheckBox(fid);
+          if (selected && parseInt(selected.value, 10) === idx) cb.check();
+          else cb.uncheck();
+        } catch (e) { /* skip */ }
+      });
+    });
+
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+
+    const patientName = (document.getElementById('patient_name').value || 'patient').trim().replace(/[^a-z0-9]+/gi, '_');
+    const visitDate = (document.getElementById('visit_date').value || 'visit').trim().replace(/[^a-z0-9]+/gi, '-');
+    const filename = `PTA_Visit_${patientName}_${visitDate}.pdf`;
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+    setStatus('Completed PDF generated — check your Downloads folder.', 'ok');
+  } catch (err) {
+    console.error(err);
+    setStatus('Something went wrong generating the PDF: ' + err.message, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+
+</body>
+</html>
