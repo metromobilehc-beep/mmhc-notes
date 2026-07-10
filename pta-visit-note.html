@@ -190,7 +190,30 @@
     gap: 12px;
   }
   .pain-row input[type=range] { flex: 1; }
-  #pain_display {
+  .pain-block {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .pain-sub {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .pain-label {
+    font-size: 13px;
+    color: var(--muted);
+    min-width: 84px;
+    flex-shrink: 0;
+  }
+  .chip-group-label {
+    font-size: 12px;
+    color: var(--muted);
+    align-self: center;
+    margin-right: -2px;
+  }
+  #pain_display, #pain_rest_display, #pain_activity_display {
     font-weight: 700;
     font-size: 18px;
     color: var(--accent);
@@ -387,6 +410,56 @@
       <textarea id="gait"></textarea>
 
       <label>Pain</label>
+      <div class="pain-block">
+        <div class="pain-sub">
+          <span class="pain-label">At rest</span>
+          <div class="pain-row">
+            <input type="range" id="pain_rest_slider" min="0" max="10" step="1" value="0">
+            <span id="pain_rest_display">0</span>
+          </div>
+        </div>
+        <div class="pain-sub">
+          <span class="pain-label">With activity</span>
+          <div class="pain-row">
+            <input type="range" id="pain_activity_slider" min="0" max="10" step="1" value="0">
+            <span id="pain_activity_display">0</span>
+          </div>
+        </div>
+      </div>
+      <div class="chip-row">
+        <span class="chip-group-label">Quality:</span>
+        <button type="button" class="chip-btn" data-target="pain_note" data-chip="Sharp">Sharp</button>
+        <button type="button" class="chip-btn" data-target="pain_note" data-chip="Dull">Dull</button>
+        <button type="button" class="chip-btn" data-target="pain_note" data-chip="Aching">Aching</button>
+        <button type="button" class="chip-btn" data-target="pain_note" data-chip="Burning">Burning</button>
+        <button type="button" class="chip-btn" data-target="pain_note" data-chip="Throbbing">Throbbing</button>
+        <button type="button" class="chip-btn" data-target="pain_note" data-chip="Stiffness">Stiffness</button>
+      </div>
+      <div class="chip-row">
+        <span class="chip-group-label">Pattern:</span>
+        <button type="button" class="chip-btn" data-target="pain_note" data-chip="Constant">Constant</button>
+        <button type="button" class="chip-btn" data-target="pain_note" data-chip="Intermittent">Intermittent</button>
+        <button type="button" class="chip-btn" data-target="pain_note" data-chip="With movement">With movement</button>
+        <button type="button" class="chip-btn" data-target="pain_note" data-chip="With weight bearing">With weight bearing</button>
+      </div>
+      <div class="chip-row">
+        <span class="chip-group-label">Location:</span>
+        <button type="button" class="chip-btn" data-target="pain_note" data-chip="Right knee">R knee</button>
+        <button type="button" class="chip-btn" data-target="pain_note" data-chip="Left knee">L knee</button>
+        <button type="button" class="chip-btn" data-target="pain_note" data-chip="Right hip">R hip</button>
+        <button type="button" class="chip-btn" data-target="pain_note" data-chip="Left hip">L hip</button>
+        <button type="button" class="chip-btn" data-target="pain_note" data-chip="Low back">Low back</button>
+        <button type="button" class="chip-btn" data-target="pain_note" data-chip="Right shoulder">R shoulder</button>
+        <button type="button" class="chip-btn" data-target="pain_note" data-chip="Left shoulder">L shoulder</button>
+      </div>
+      <div class="chip-row">
+        <span class="chip-group-label">Response:</span>
+        <button type="button" class="chip-btn" data-target="pain_note" data-chip="Improved with rest">Improved w/ rest</button>
+        <button type="button" class="chip-btn" data-target="pain_note" data-chip="Improved with heat">Improved w/ heat</button>
+        <button type="button" class="chip-btn" data-target="pain_note" data-chip="Improved with ice">Improved w/ ice</button>
+        <button type="button" class="chip-btn" data-target="pain_note" data-chip="Unchanged despite intervention">Unchanged</button>
+        <button type="button" class="chip-btn" data-target="pain_note" data-chip="Limiting participation in exercise">Limiting participation</button>
+      </div>
       <input type="text" id="pain_note">
 
       <label>Other</label>
@@ -620,6 +693,35 @@ if (painSlider) {
   painSlider.addEventListener('input', () => {
     painDisplay.textContent = painSlider.value;
     painHidden.value = painSlider.value;
+  });
+}
+
+const painRestSlider = document.getElementById('pain_rest_slider');
+const painActivitySlider = document.getElementById('pain_activity_slider');
+const painRestDisplay = document.getElementById('pain_rest_display');
+const painActivityDisplay = document.getElementById('pain_activity_display');
+const painNoteEl = document.getElementById('pain_note');
+const restActivityPrefixPattern = /^\d+\/10 at rest, \d+\/10 with activity\.?\s*/;
+
+function updatePainNotePrefix() {
+  if (!painNoteEl || !painRestSlider || !painActivitySlider) return;
+  const rest = painRestSlider.value;
+  const activity = painActivitySlider.value;
+  const prefix = `${rest}/10 at rest, ${activity}/10 with activity. `;
+  const existing = painNoteEl.value.replace(restActivityPrefixPattern, '');
+  painNoteEl.value = prefix + existing;
+}
+
+if (painRestSlider) {
+  painRestSlider.addEventListener('input', () => {
+    painRestDisplay.textContent = painRestSlider.value;
+    updatePainNotePrefix();
+  });
+}
+if (painActivitySlider) {
+  painActivitySlider.addEventListener('input', () => {
+    painActivityDisplay.textContent = painActivitySlider.value;
+    updatePainNotePrefix();
   });
 }
 
