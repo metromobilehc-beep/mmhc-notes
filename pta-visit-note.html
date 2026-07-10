@@ -146,6 +146,57 @@
     font-size: 13.5px;
     margin-bottom: 18px;
   }
+  .quick-row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+  }
+  .quick-row input { flex: 1; }
+  .chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 6px 0 8px;
+  }
+  .chip-btn {
+    background: #eef1f3;
+    color: var(--navy);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .chip-btn:active { background: var(--navy); color: #fff; }
+  .chip-btn.today-btn, .chip-btn.now-btn {
+    flex-shrink: 0;
+    background: var(--navy);
+    color: #fff;
+    border-color: var(--navy);
+    font-weight: 600;
+  }
+  .hint-inline {
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: normal;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .pain-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .pain-row input[type=range] { flex: 1; }
+  #pain_display {
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--accent);
+    min-width: 22px;
+    text-align: center;
+  }
 </style>
 </head>
 <body>
@@ -168,12 +219,37 @@
     <fieldset>
       <legend>Visit Info</legend>
       <div class="row">
-        <div><label>Visit Date</label><input type="text" id="visit_date" placeholder="MM/DD/YYYY"></div>
-        <div><label>Time In</label><input type="text" id="time_in" placeholder="HH:MM"></div>
+        <div>
+          <label>Visit Date</label>
+          <div class="quick-row">
+            <input type="date" id="visit_date">
+            <button type="button" class="chip-btn today-btn" data-target="visit_date">Today</button>
+          </div>
+        </div>
       </div>
       <div class="row">
-        <div><label>Time Out</label><input type="text" id="time_out" placeholder="HH:MM"></div>
-        <div><label>Visit Length</label><input type="text" id="visit_len" placeholder="e.g. 45 min"></div>
+        <div>
+          <label>Time In</label>
+          <div class="quick-row">
+            <input type="time" id="time_in">
+            <button type="button" class="chip-btn now-btn" data-target="time_in">Now</button>
+          </div>
+        </div>
+        <div>
+          <label>Time Out</label>
+          <div class="quick-row">
+            <input type="time" id="time_out">
+            <button type="button" class="chip-btn now-btn" data-target="time_out">Now</button>
+          </div>
+        </div>
+      </div>
+      <label>Visit Length <span class="hint-inline">(auto-fills from times above, or tap a preset)</span></label>
+      <input type="text" id="visit_len" placeholder="e.g. 45 min">
+      <div class="chip-row">
+        <button type="button" class="chip-btn" data-fill="visit_len:15 min">15 min</button>
+        <button type="button" class="chip-btn" data-fill="visit_len:30 min">30 min</button>
+        <button type="button" class="chip-btn" data-fill="visit_len:45 min">45 min</button>
+        <button type="button" class="chip-btn" data-fill="visit_len:60 min">60 min</button>
       </div>
     </fieldset>
 
@@ -186,7 +262,7 @@
       <label>Home Health Agency</label>
       <input type="text" id="agency">
       <label>DOB</label>
-      <input type="text" id="dob" placeholder="MM/DD/YYYY">
+      <input type="date" id="dob">
 
       <label>Homebound Status</label>
       <div class="choice-group">
@@ -194,27 +270,45 @@
         <label><input type="radio" name="homebound" value="1"> No</label>
       </div>
       <label>Reason Homebound</label>
+      <div class="chip-row">
+        <button type="button" class="chip-btn" data-fill="homebound_reason:Requires max assist for all mobility outside home">Max assist mobility</button>
+        <button type="button" class="chip-btn" data-fill="homebound_reason:SOB/fatigue with exertion limits leaving home">SOB/fatigue w/ exertion</button>
+        <button type="button" class="chip-btn" data-fill="homebound_reason:Unsafe to leave home without assistance">Unsafe alone</button>
+        <button type="button" class="chip-btn" data-fill="homebound_reason:Considerable and taxing effort required to leave home">Taxing effort to leave</button>
+      </div>
       <input type="text" id="homebound_reason">
     </fieldset>
 
     <fieldset>
       <legend>Vitals</legend>
       <div class="row">
-        <div><label>BP</label><input type="text" id="vital_0"></div>
-        <div><label>HR</label><input type="text" id="vital_1"></div>
-        <div><label>RR</label><input type="text" id="vital_2"></div>
+        <div><label>BP</label><input type="text" id="vital_0" placeholder="120/80"></div>
+        <div><label>HR</label><input type="text" id="vital_1" inputmode="numeric"></div>
+        <div><label>RR</label><input type="text" id="vital_2" inputmode="numeric"></div>
       </div>
       <div class="row">
-        <div><label>Temp</label><input type="text" id="vital_3"></div>
-        <div><label>O2 Sat %</label><input type="text" id="vital_4"></div>
-        <div><label>Pain (0-10)</label><input type="text" id="vital_5"></div>
-        <div><label>Wt</label><input type="text" id="vital_6"></div>
+        <div><label>Temp</label><input type="text" id="vital_3" inputmode="decimal"></div>
+        <div><label>O2 Sat %</label><input type="text" id="vital_4" inputmode="numeric"></div>
+        <div><label>Wt</label><input type="text" id="vital_6" inputmode="decimal"></div>
       </div>
+      <label>Pain (0-10)</label>
+      <div class="pain-row">
+        <input type="range" id="vital_5_slider" min="0" max="10" step="1" value="0">
+        <span id="pain_display">0</span>
+      </div>
+      <input type="hidden" id="vital_5" value="0">
     </fieldset>
 
     <fieldset>
       <legend>Subjective</legend>
       <label>Patient/caregiver report, complaints, changes since last visit</label>
+      <div class="chip-row">
+        <button type="button" class="chip-btn" data-target="subjective" data-chip="Patient reports no new complaints since last visit.">No new complaints</button>
+        <button type="button" class="chip-btn" data-target="subjective" data-chip="Patient/caregiver reports increased pain since last visit.">Increased pain</button>
+        <button type="button" class="chip-btn" data-target="subjective" data-chip="Patient/caregiver reports decreased pain since last visit.">Decreased pain</button>
+        <button type="button" class="chip-btn" data-target="subjective" data-chip="Patient reports feeling fatigued today.">Fatigued today</button>
+        <button type="button" class="chip-btn" data-target="subjective" data-chip="Patient/caregiver reports a fall since last visit.">Fall since last visit</button>
+      </div>
       <textarea id="subjective"></textarea>
     </fieldset>
 
@@ -231,29 +325,75 @@
         <label><input type="checkbox" id="mental_6"> Lethargic</label>
       </div>
 
+      <label>Assist Level <span class="hint-inline">(tap to insert into Therapeutic Exercise)</span></label>
+      <div class="chip-row">
+        <button type="button" class="chip-btn" data-target="ther_ex" data-chip="Independent">Independent</button>
+        <button type="button" class="chip-btn" data-target="ther_ex" data-chip="Standby assist">SBA</button>
+        <button type="button" class="chip-btn" data-target="ther_ex" data-chip="Contact guard assist">CGA</button>
+        <button type="button" class="chip-btn" data-target="ther_ex" data-chip="Minimal assist">Min A</button>
+        <button type="button" class="chip-btn" data-target="ther_ex" data-chip="Moderate assist">Mod A</button>
+        <button type="button" class="chip-btn" data-target="ther_ex" data-chip="Maximal assist">Max A</button>
+        <button type="button" class="chip-btn" data-target="ther_ex" data-chip="Verbal cues for proper form">Verbal cues</button>
+        <button type="button" class="chip-btn" data-target="ther_ex" data-chip="Tactile cues for proper form">Tactile cues</button>
+      </div>
       <label>Therapeutic Exercise</label>
+      <div class="chip-row">
+        <button type="button" class="chip-btn" data-target="ther_ex" data-chip="3 sets of 10 reps">3x10</button>
+        <button type="button" class="chip-btn" data-target="ther_ex" data-chip="2 sets of 15 reps">2x15</button>
+        <button type="button" class="chip-btn" data-target="ther_ex" data-chip="Tolerated well">Tolerated well</button>
+        <button type="button" class="chip-btn" data-target="ther_ex" data-chip="Patient fatigued, required rest breaks">Fatigued, rest breaks</button>
+      </div>
       <textarea id="ther_ex"></textarea>
 
       <label>Balance Training</label>
+      <div class="chip-row">
+        <button type="button" class="chip-btn" data-target="balance" data-chip="Static standing balance">Static standing</button>
+        <button type="button" class="chip-btn" data-target="balance" data-chip="Dynamic standing balance">Dynamic standing</button>
+        <button type="button" class="chip-btn" data-target="balance" data-chip="Single limb stance">Single limb stance</button>
+        <button type="button" class="chip-btn" data-target="balance" data-chip="Tolerated well">Tolerated well</button>
+      </div>
       <textarea id="balance"></textarea>
 
       <label>Transfer Training</label>
+      <div class="chip-row">
+        <button type="button" class="chip-btn" data-target="transfer" data-chip="Bed to chair transfer">Bed &harr; chair</button>
+        <button type="button" class="chip-btn" data-target="transfer" data-chip="Sit to stand transfer">Sit &harr; stand</button>
+        <button type="button" class="chip-btn" data-target="transfer" data-chip="Toilet transfer">Toilet</button>
+        <button type="button" class="chip-btn" data-target="transfer" data-chip="Tolerated well">Tolerated well</button>
+      </div>
       <textarea id="transfer"></textarea>
       <label>Deviations / Correction</label>
       <input type="text" id="transfer_dev">
 
       <label>Bed Mobility Training</label>
+      <div class="chip-row">
+        <button type="button" class="chip-btn" data-target="bedmob" data-chip="Rolling side to side">Rolling</button>
+        <button type="button" class="chip-btn" data-target="bedmob" data-chip="Supine to sit">Supine to sit</button>
+        <button type="button" class="chip-btn" data-target="bedmob" data-chip="Scooting/repositioning in bed">Scooting</button>
+        <button type="button" class="chip-btn" data-target="bedmob" data-chip="Tolerated well">Tolerated well</button>
+      </div>
       <textarea id="bedmob"></textarea>
       <label>Deviations / Correction</label>
       <input type="text" id="bedmob_dev">
 
       <label>Gait Training / Wheelchair Mobility Training</label>
+      <div class="chip-row">
+        <button type="button" class="chip-btn" data-target="gait" data-chip="Ambulated 50 ft with rolling walker">50 ft w/ walker</button>
+        <button type="button" class="chip-btn" data-target="gait" data-chip="Ambulated 100 ft with rolling walker">100 ft w/ walker</button>
+        <button type="button" class="chip-btn" data-target="gait" data-chip="Ambulated with straight cane">Straight cane</button>
+        <button type="button" class="chip-btn" data-target="gait" data-chip="Negotiated stairs with railing">Stairs w/ railing</button>
+        <button type="button" class="chip-btn" data-target="gait" data-chip="Tolerated well">Tolerated well</button>
+      </div>
       <textarea id="gait"></textarea>
 
       <label>Pain</label>
       <input type="text" id="pain_note">
 
       <label>Other</label>
+      <div class="chip-row">
+        <button type="button" class="chip-btn" data-target="other_note" data-chip="No new safety concerns identified this visit.">No new safety concerns</button>
+        <button type="button" class="chip-btn" data-target="other_note" data-chip="New fall risk/safety concern identified this visit, see note.">New concern identified</button>
+      </div>
       <input type="text" id="other_note">
     </fieldset>
 
@@ -282,14 +422,30 @@
     <fieldset>
       <legend>Assessment — Response &amp; Progress</legend>
       <label>Patient response to treatment this visit</label>
+      <div class="chip-row">
+        <button type="button" class="chip-btn" data-target="response" data-chip="Patient tolerated treatment well with no adverse response.">Tolerated well</button>
+        <button type="button" class="chip-btn" data-target="response" data-chip="Patient required increased rest breaks due to fatigue.">Fatigued, more breaks</button>
+        <button type="button" class="chip-btn" data-target="response" data-chip="Patient demonstrated improved performance compared to previous visit.">Improved vs. last visit</button>
+        <button type="button" class="chip-btn" data-target="response" data-chip="No adverse response noted during or after treatment.">No adverse response</button>
+      </div>
       <textarea id="response"></textarea>
       <label>Outcome / Progress toward goal</label>
+      <div class="chip-row">
+        <button type="button" class="chip-btn" data-target="progress" data-chip="Patient continues to progress toward established goals.">Progressing toward goals</button>
+        <button type="button" class="chip-btn" data-target="progress" data-chip="Patient's progress has plateaued; plan of care to be reviewed with supervising PT.">Plateaued</button>
+        <button type="button" class="chip-btn" data-target="progress" data-chip="Patient has met short-term goals; long-term goals in progress.">Met short-term goals</button>
+      </div>
       <textarea id="progress"></textarea>
     </fieldset>
 
     <fieldset>
       <legend>Plan</legend>
       <label>Frequency / Plan</label>
+      <div class="chip-row">
+        <button type="button" class="chip-btn" data-fill="frequency:2x/week x 4 weeks">2x/wk x4wks</button>
+        <button type="button" class="chip-btn" data-fill="frequency:3x/week x 4 weeks">3x/wk x4wks</button>
+        <button type="button" class="chip-btn" data-fill="frequency:1x/week x 4 weeks">1x/wk x4wks</button>
+      </div>
       <input type="text" id="frequency">
       <label>Details</label>
       <textarea id="plan"></textarea>
@@ -340,8 +496,14 @@
       </div>
 
       <div class="row">
-        <div><label>Next Supervisory Visit</label><input type="text" id="next_super"></div>
-        <div><label>Next PT Visit</label><input type="text" id="next_pt"></div>
+        <div>
+          <label>Next Supervisory Visit</label>
+          <input type="date" id="next_super">
+        </div>
+        <div>
+          <label>Next PT Visit</label>
+          <input type="date" id="next_pt">
+        </div>
       </div>
     </fieldset>
 
@@ -350,17 +512,26 @@
       <label>PTA Signature / Title (type full name)</label>
       <input type="text" id="pta_sig">
       <label>Date</label>
-      <input type="text" id="pta_date" placeholder="MM/DD/YYYY">
+      <div class="quick-row">
+        <input type="date" id="pta_date">
+        <button type="button" class="chip-btn today-btn" data-target="pta_date">Today</button>
+      </div>
 
       <label>Supervising PT Signature (type full name)</label>
       <input type="text" id="pt_sig">
       <label>Date</label>
-      <input type="text" id="pt_date" placeholder="MM/DD/YYYY">
+      <div class="quick-row">
+        <input type="date" id="pt_date">
+        <button type="button" class="chip-btn today-btn" data-target="pt_date">Today</button>
+      </div>
 
       <label>Patient / Caregiver Signature (type full name)</label>
       <input type="text" id="pt_care_sig">
       <label>Date</label>
-      <input type="text" id="pcare_date" placeholder="MM/DD/YYYY">
+      <div class="quick-row">
+        <input type="date" id="pcare_date">
+        <button type="button" class="chip-btn today-btn" data-target="pcare_date">Today</button>
+      </div>
     </fieldset>
 
   </form>
@@ -411,12 +582,109 @@ const radioGroups = {
   hha_plan: ["hha_plan_0","hha_plan_1"]
 };
 
+const dateFieldIds = ["visit_date","dob","pta_date","pt_date","pcare_date","next_super","next_pt"];
+const timeFieldIds = ["time_in","time_out"];
+
+function formatDateForPDF(iso) {
+  if (!iso) return '';
+  const parts = iso.split('-');
+  if (parts.length !== 3) return iso;
+  const [y, m, d] = parts;
+  return `${m}/${d}/${y}`;
+}
+
+function formatTimeForPDF(t) {
+  if (!t) return '';
+  const parts = t.split(':').map(Number);
+  if (parts.length < 2 || isNaN(parts[0]) || isNaN(parts[1])) return t;
+  const [h, min] = parts;
+  const suffix = h >= 12 ? 'PM' : 'AM';
+  let h12 = h % 12;
+  if (h12 === 0) h12 = 12;
+  return `${h12}:${String(min).padStart(2, '0')} ${suffix}`;
+}
+
 const statusEl = document.getElementById('status');
 
 function setStatus(msg, cls) {
   statusEl.textContent = msg;
   statusEl.className = cls || '';
 }
+
+// --- Quick-entry UI wiring ---
+
+const painSlider = document.getElementById('vital_5_slider');
+const painDisplay = document.getElementById('pain_display');
+const painHidden = document.getElementById('vital_5');
+if (painSlider) {
+  painSlider.addEventListener('input', () => {
+    painDisplay.textContent = painSlider.value;
+    painHidden.value = painSlider.value;
+  });
+}
+
+document.querySelectorAll('.today-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = document.getElementById(btn.dataset.target);
+    if (!target) return;
+    const now = new Date();
+    target.value = now.toISOString().slice(0, 10);
+  });
+});
+
+document.querySelectorAll('.now-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = document.getElementById(btn.dataset.target);
+    if (!target) return;
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    target.value = `${hh}:${mm}`;
+    autoCalcVisitLength();
+  });
+});
+
+// Direct-fill chips: data-fill="fieldId:value text"
+document.querySelectorAll('.chip-btn[data-fill]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const raw = btn.dataset.fill;
+    const sep = raw.indexOf(':');
+    const fieldId = raw.slice(0, sep);
+    const value = raw.slice(sep + 1);
+    const target = document.getElementById(fieldId);
+    if (target) target.value = value;
+  });
+});
+
+// Append chips: data-target + data-chip, adds onto existing text
+document.querySelectorAll('.chip-btn[data-chip]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = document.getElementById(btn.dataset.target);
+    if (!target) return;
+    const phrase = btn.dataset.chip;
+    if (!target.value) {
+      target.value = phrase;
+    } else if (target.value.trim().endsWith(',') || target.value.trim().endsWith('.')) {
+      target.value = target.value.trim() + ' ' + phrase;
+    } else {
+      target.value = target.value.trim() + ', ' + phrase;
+    }
+    target.focus();
+  });
+});
+
+function autoCalcVisitLength() {
+  const tIn = document.getElementById('time_in').value;
+  const tOut = document.getElementById('time_out').value;
+  if (!tIn || !tOut) return;
+  const [h1, m1] = tIn.split(':').map(Number);
+  const [h2, m2] = tOut.split(':').map(Number);
+  let mins = (h2 * 60 + m2) - (h1 * 60 + m1);
+  if (mins < 0) mins += 24 * 60;
+  document.getElementById('visit_len').value = `${mins} min`;
+}
+document.getElementById('time_in').addEventListener('change', autoCalcVisitLength);
+document.getElementById('time_out').addEventListener('change', autoCalcVisitLength);
 
 document.getElementById('generateBtn').addEventListener('click', async () => {
   const btn = document.getElementById('generateBtn');
@@ -435,7 +703,9 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
     textFieldIds.forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
-      const val = el.value || '';
+      let val = el.value || '';
+      if (dateFieldIds.includes(id)) val = formatDateForPDF(val);
+      if (timeFieldIds.includes(id)) val = formatTimeForPDF(val);
       try {
         form.getTextField(id).setText(val);
       } catch (e) { /* field not found, skip */ }
@@ -467,7 +737,7 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
     const url = URL.createObjectURL(blob);
 
     const patientName = (document.getElementById('patient_name').value || 'patient').trim().replace(/[^a-z0-9]+/gi, '_');
-    const visitDate = (document.getElementById('visit_date').value || 'visit').trim().replace(/[^a-z0-9]+/gi, '-');
+    const visitDate = document.getElementById('visit_date').value || 'visit';
     const filename = `PTA_Visit_${patientName}_${visitDate}.pdf`;
 
     const a = document.createElement('a');
